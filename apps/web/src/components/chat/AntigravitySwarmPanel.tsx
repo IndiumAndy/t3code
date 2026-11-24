@@ -6,6 +6,7 @@ import { randomUUID } from "~/lib/utils";
 import { useStableCallback } from "~/hooks/useStableCallback";
 import { orchestrationEnvironment } from "../../state/orchestration";
 import { useAtomCommand } from "../../state/use-atom-command";
+import { AntigravityWorkerDialog } from "./AntigravityWorkerDialog";
 import { isElectron } from "~/env";
 import { loadSwarmFonts } from "./antigravitySwarmFonts";
 import { swarmDocument } from "./antigravitySwarmDocument";
@@ -45,6 +46,9 @@ export default function AntigravitySwarmPanel({
   const frame = useRef<HTMLIFrameElement>(null);
   const port = useRef<MessagePort | null>(null);
   const snapshot = useRef<AntigravitySwarmResult | null>(null);
+  const [worker, setWorker] = useState<{ memberId: string; packet: AntigravitySwarmResult } | null>(
+    null,
+  );
   const boardSession = useRef("");
   const frameKey = useRef("");
   const read = useAtomCommand(orchestrationEnvironment.antigravitySwarm, { reportFailure: false });
@@ -75,6 +79,7 @@ export default function AntigravitySwarmPanel({
         if (records.sessionId !== loadedSession) {
           loadedSession = null;
           snapshot.current = null;
+          setWorker(null);
           boardSession.current = "";
           port.current?.close();
           port.current = null;
@@ -90,6 +95,11 @@ export default function AntigravitySwarmPanel({
         }
         if (revision !== records.revision || snapshot.current === null) {
           snapshot.current = records;
+          setWorker((current) =>
+            current?.packet.sessionId === records.sessionId && current
+              ? { ...current, packet: records }
+              : null,
+          );
           port.current?.postMessage({ type: "records", packet: records });
           revision = records.revision;
         }
@@ -99,6 +109,7 @@ export default function AntigravitySwarmPanel({
           port.current?.close();
           port.current = null;
           snapshot.current = null;
+          setWorker(null);
           boardSession.current = "";
           loadedSession = null;
           revision = undefined;
@@ -174,18 +185,23 @@ export default function AntigravitySwarmPanel({
         typeof data.memberId === "string" &&
         frame.current
       ) {
-        frame.current.dispatchEvent(
-          new CustomEvent("t3:antigravity-worker-open", {
-            bubbles: true,
-            detail: { threadId: threadRef.threadId, memberId: data.memberId },
-          }),
-        );
+        const packet = snapshot.current;
+        if (packet) setWorker({ memberId: data.memberId, packet });
       }
     };
     target.postMessage("t3:swarm:connect", "*", [connection.port2]);
   };
   return (
     <div className="flex size-full min-h-0 flex-col">
+      {worker ? (
+        <AntigravityWorkerDialog
+          key={worker.memberId}
+          threadRef={threadRef}
+          packet={worker.packet}
+          memberId={worker.memberId}
+          onClose={() => setWorker(null)}
+        />
+      ) : null}
       {failure ? (
         <p role="alert" className="p-3 text-sm text-destructive-foreground">
           {failure}

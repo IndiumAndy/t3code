@@ -146,6 +146,12 @@ which children a batch started, the view says so. See
 [agent work](./thread-sidebar.md#inspect-agent-work) for where to inspect
 activity.
 
+In a Swarm Board, open a member from **Members** to read its recent
+conversation. **Ask coordinator to send** requests a private Antigravity message
+to that member. The coordinator sees the text and calls its native messaging
+tool. The worker’s conversation shows messages it received; the submission
+confirmation only records your request. Tool approvals stay in the main thread.
+
 ## Accounts and removal
 
 Add an Antigravity provider instance for each Google account in

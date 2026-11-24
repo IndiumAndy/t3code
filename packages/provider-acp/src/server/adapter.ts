@@ -463,6 +463,10 @@ export interface AcpAdapterV2Flavor {
     text: string,
     turnInput: ProviderAdapter.ProviderAdapterV2TurnInput,
   ) => Effect.Effect<string, never, ChildProcessSpawner.ChildProcessSpawner>;
+  readonly prepareAddressedPrompt?: (
+    sessionId: string,
+    text: string,
+  ) => Effect.Effect<string, ProviderAdapter.ProviderAdapterProtocolError>;
   readonly driver: ProviderDriverKind;
   readonly capabilities: OrchestrationV2ProviderCapabilities;
   readonly supportsNativeGoals?: Effect.Effect<boolean>;
@@ -9308,7 +9312,9 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
                       ),
                     );
           const messageText = yield* providerMessageTextWithAttachmentPaths({
-            text: userText,
+            text: flavor.prepareAddressedPrompt
+              ? yield* flavor.prepareAddressedPrompt(sessionId, userText)
+              : userText,
             attachments: turnInput.message.attachments,
             resolveAttachmentPath: host.resolveAttachmentPath,
             resolveExtractedTextPath: host.resolveExtractedTextPath,
@@ -10166,8 +10172,14 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
           turnInput: ProviderAdapter.ProviderAdapterV2SteerInput,
         ) {
           const isNativeSlashCommand = turnInput.message.text.trimStart().startsWith("/");
+          const addressedText = flavor.prepareAddressedPrompt
+            ? yield* flavor.prepareAddressedPrompt(
+                yield* nativeThreadId(driver, turnInput.providerThread),
+                turnInput.message.text,
+              )
+            : turnInput.message.text;
           const text = yield* providerMessageTextWithAttachmentPaths({
-            text: turnInput.message.text,
+            text: addressedText,
             attachments: turnInput.message.attachments,
             resolveAttachmentPath: host.resolveAttachmentPath,
             resolveExtractedTextPath: host.resolveExtractedTextPath,

@@ -3211,10 +3211,7 @@
     {
       "t": "span",
       "i": 2,
-      "c": [
-        " ",
-        "on the computer that opened this page"
-      ]
+      "c": [" ", "on the computer that opened this page"]
     }
   ],
   "b2d53b4d1d48fbef": [
@@ -3226,10 +3223,7 @@
     {
       "t": "span",
       "i": 2,
-      "c": [
-        " ",
-        "· whoever runs it gets this access"
-      ]
+      "c": [" ", "· whoever runs it gets this access"]
     }
   ],
   "c54cc9c75db9dc58": "Only approve a sign-in you just started.",
@@ -12818,14 +12812,6 @@
   "4144ab6aa487528a": "{device} connected through {product}. Not you? Review it.",
   "a10cfdb27152c757": "{count, plural, one {{count} device} other {{count} devices}} connected through {product}. Not you? Review them.",
   "81677b34fc3c6d50": "Ask a side question or reopen the latest answer",
-  "048376362419c7d3": "Proceeded",
-  "1927223dc8c86183": "Comment on line {line}",
-  "215d63004f78ba9e": "Review and comment",
-  "e7c4fed733979fbe": "Proceed",
-  "87805fb2cda8d3f4": "Review implementation plan",
-  "ec40fe7a1a940228": "Add feedback beside the passage you want to change.",
-  "4e9d4636bea7636d": "Add comment",
-  "438183bd7a40220c": "Request changes",
   "5a83d6ce0c6d1ae3": "Swarm Board",
   "82d8a4c2f3d4ab6b": "Waiting for the Antigravity conversation…",
   "9de0c8a43625017a": "Swarm Board",
@@ -12836,6 +12822,26 @@
   "b5e67e8c3e24883e": "Superseded",
   "1c3b591144e9df12": "Feedback requested",
   "abb94570c31e2c3c": "Showing a limited list of artifacts.",
+  "440a346ff161fc5d": "Worker conversation",
+  "fb74c2903087d7fa": "Received from coordinator",
+  "ce5951a137949761": "User",
+  "16730b600be85a44": "Message via coordinator",
+  "dafa77513192b350": "Recent messages in this member’s Antigravity conversation.",
+  "6f1aa61d61ff5df8": "This member’s conversation is unavailable.",
+  "f27960a27a2d80dc": "No recent messages.",
+  "8da65a164b23fcce": "View pending requests in the main conversation",
+  "22a4e8d8e9f80dcf": "Message via coordinator",
+  "fa005f86b94a2979": "Requested delivery. The worker’s conversation shows messages it receives.",
+  "8337c254b86a064a": "The request could not be submitted.",
+  "9f6ad4215e68e5b9": "Ask coordinator to send",
+  "048376362419c7d3": "Proceeded",
+  "1927223dc8c86183": "Comment on line {line}",
+  "215d63004f78ba9e": "Review and comment",
+  "e7c4fed733979fbe": "Proceed",
+  "87805fb2cda8d3f4": "Review implementation plan",
+  "ec40fe7a1a940228": "Add feedback beside the passage you want to change.",
+  "4e9d4636bea7636d": "Add comment",
+  "438183bd7a40220c": "Request changes",
   "f76d1845dd245778": "Failed to stop goal.",
   "610984788e10d953": "Goal stopped · objective retained",
   "223da30ae53bbf8c": "Stop and keep objective",

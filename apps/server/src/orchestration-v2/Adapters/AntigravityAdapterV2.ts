@@ -37,6 +37,7 @@ import {
   readAntigravityPendingReply,
 } from "../../provider/acp/AntigravityChildWork.ts";
 import { antigravityGoalControl, readAntigravityGoal } from "../../provider/acp/AntigravityGoal.ts";
+import { prepareAntigravityWorkerMessage } from "../../provider/acp/AntigravityWorkerMessage.ts";
 import { readAntigravityClientTextFile } from "../../provider/acp/AntigravityClientFiles.ts";
 import { readAntigravityReviewPlan } from "../../provider/acp/AntigravityReviewPlan.ts";
 import { watchAntigravityPromptOutcome } from "../../provider/acp/AntigravityTurnOutcome.ts";
@@ -335,6 +336,8 @@ export function makeAntigravityAcpAdapterFlavor(
                 };
               }),
           },
+          prepareAddressedPrompt: (sessionId, text) =>
+            prepareAntigravityWorkerMessage(profileDirectory, sessionId, text),
           watchPromptOutcome: (sessionId: string) =>
             watchAntigravityPromptOutcome(profileDirectory, sessionId),
           subagentsOutlivingPrompt: ({ sessionId, nativeTaskIds }) =>

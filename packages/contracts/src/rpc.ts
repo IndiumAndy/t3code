@@ -2225,6 +2225,12 @@ const WsAntigravitySwarmRpc = Rpc.make(ORCHESTRATION_V2_WS_METHODS.getAntigravit
   success: OrchestrationV2RpcSchemas.getAntigravitySwarm.output,
   error: Schema.Union([AntigravitySwarmError, EnvironmentAuthorizationError]),
 });
+const WsAntigravityArtifactsRpc = Rpc.make(ORCHESTRATION_V2_WS_METHODS.getAntigravityArtifacts, {
+  payload: OrchestrationV2RpcSchemas.getAntigravityArtifacts.input,
+  success: OrchestrationV2RpcSchemas.getAntigravityArtifacts.output,
+  error: Schema.Union([OrchestrationV2GetThreadProjectionError, EnvironmentAuthorizationError]),
+});
+
 const WsOrchestrationV2GetNativeChildWorkRpc = Rpc.make(
   ORCHESTRATION_V2_WS_METHODS.getNativeChildWork,
   {
@@ -2702,6 +2708,7 @@ export const WsRpcGroup = RpcGroup.make(
   WsOrchestrationV2DispatchCommandRpc,
   WsOrchestrationV2GetWorkflowScriptRpc,
   WsAntigravitySwarmRpc,
+  WsAntigravityArtifactsRpc,
   WsOrchestrationV2GetNativeChildWorkRpc,
   WsOrchestrationV2StopWorkflowRpc,
   WsOrchestrationV2ForceStopThreadRpc,

@@ -4124,6 +4124,11 @@ export default function ChatView(props: ChatViewProps) {
                 />
 
                 <ThreadDetailsPanel
+                  showAntigravityArtifacts={
+                    isServerThread &&
+                    serverConfig?.environment.capabilities.antigravityArtifacts === true &&
+                    conversationProviderStatus?.driver === "antigravity"
+                  }
                   anchor={threadPanelPopoverAnchorRef}
                   handle={threadPanelPopoverHandle}
                   forceNewWorktree={multipleModelSelections !== null}

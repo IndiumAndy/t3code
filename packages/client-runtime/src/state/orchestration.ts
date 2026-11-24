@@ -197,6 +197,12 @@ export function createOrchestrationEnvironmentAtoms<R, E>(
       label: "environment-data:antigravity:swarm",
       tag: ORCHESTRATION_V2_WS_METHODS.getAntigravitySwarm,
     }),
+    antigravityArtifacts: createEnvironmentRpcQueryAtomFamily(runtime, {
+      label: "environment-data:orchestration:antigravity-artifacts",
+      tag: ORCHESTRATION_V2_WS_METHODS.getAntigravityArtifacts,
+      staleTimeMs: 0,
+      idleTtlMs: 0,
+    }),
     // Mounted only while a subagent inspector is open; running children change between opens.
     nativeChildWork: createEnvironmentRpcQueryAtomFamily(runtime, {
       label: "environment-data:orchestration:native-child-work",

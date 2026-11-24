@@ -111,6 +111,14 @@ Antigravity receives images and audio directly, and reads PDFs and text files as
 documents. Other attachments, including videos, are passed as a saved file path for
 the agent to inspect with its tools.
 
+### Artifacts
+
+Open **Artifacts** in thread details to see the files Antigravity shared in the
+current session, including its implementation plan, walkthrough, and screenshots.
+Select a file to open the original in the right panel. The plan's review status
+belongs to that revision. When the agent revises it, open the new plan card to
+review it again.
+
 ### Side questions
 
 On desktop and web, send `/btw <question>` to ask about the current task in a

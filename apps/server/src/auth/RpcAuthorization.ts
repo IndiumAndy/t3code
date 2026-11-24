@@ -47,6 +47,7 @@ export const RPC_REQUIRED_SCOPES = {
   [ORCHESTRATION_V2_WS_METHODS.dispatchCommand]: AuthOrchestrationOperateScope,
   [ORCHESTRATION_V2_WS_METHODS.getWorkflowScript]: AuthOrchestrationReadScope,
   [ORCHESTRATION_V2_WS_METHODS.getAntigravitySwarm]: AuthFilesystemReadScope,
+  [ORCHESTRATION_V2_WS_METHODS.getAntigravityArtifacts]: AuthFilesystemReadScope,
   [ORCHESTRATION_V2_WS_METHODS.getNativeChildWork]: AuthOrchestrationReadScope,
   [ORCHESTRATION_V2_WS_METHODS.stopWorkflow]: AuthOrchestrationOperateScope,
   [ORCHESTRATION_V2_WS_METHODS.forceStopThread]: AuthOrchestrationOperateScope,
@@ -317,6 +318,9 @@ const requiredScopesForRpcCall = (
   method: string,
   payload: unknown,
 ): ReadonlyArray<AuthEnvironmentScope> => {
+  if (method === ORCHESTRATION_V2_WS_METHODS.getAntigravityArtifacts) {
+    return [AuthOrchestrationReadScope, AuthFilesystemReadScope];
+  }
   if (method === ORCHESTRATION_V2_WS_METHODS.getAntigravitySwarm) {
     return [AuthOrchestrationReadScope, AuthFilesystemReadScope];
   }

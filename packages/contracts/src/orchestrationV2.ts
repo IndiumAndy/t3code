@@ -4112,6 +4112,7 @@ export const ORCHESTRATION_V2_WS_METHODS = {
   getThreadProjection: "orchestration.getThreadProjection",
   getWorkflowScript: "orchestration.getWorkflowScript",
   getAntigravitySwarm: "orchestration.getAntigravitySwarm",
+  getAntigravityArtifacts: "orchestration.getAntigravityArtifacts",
   getNativeChildWork: "orchestration.getNativeChildWork",
   stopWorkflow: "orchestration.stopWorkflow",
   forceStopThread: "orchestration.forceStopThread",
@@ -4607,6 +4608,20 @@ export class AntigravitySwarmError extends Schema.TaggedError<AntigravitySwarmEr
   { message: Schema.String },
 ) {}
 
+export const AntigravityArtifact = Schema.Struct({
+  name: TrimmedNonEmptyString,
+  path: TrimmedNonEmptyString,
+  summary: Schema.String,
+  review: Schema.Literals(["none", "requested", "reviewed", "superseded"]),
+});
+export type AntigravityArtifact = typeof AntigravityArtifact.Type;
+
+export const AntigravityArtifactList = Schema.Struct({
+  artifacts: Schema.Array(AntigravityArtifact),
+  truncated: Schema.Boolean,
+});
+export type AntigravityArtifactList = typeof AntigravityArtifactList.Type;
+
 /** Names a provider-native subagent's child thread. */
 export const OrchestrationV2GetNativeChildWorkInput = Schema.Struct({
   threadId: ThreadId,
@@ -4843,6 +4858,10 @@ export const OrchestrationV2RpcSchemas = {
     output: OrchestrationV2GetWorkflowScriptResult,
   },
   getAntigravitySwarm: { input: AntigravitySwarmInput, output: AntigravitySwarmResult },
+  getAntigravityArtifacts: {
+    input: Schema.Struct({ threadId: ThreadId }),
+    output: AntigravityArtifactList,
+  },
   getNativeChildWork: {
     input: OrchestrationV2GetNativeChildWorkInput,
     output: OrchestrationV2GetNativeChildWorkResult,

@@ -57,10 +57,11 @@ vi.mock(import("../state/server"), async (original) => {
   const { Atom } = await import("effect/reactivity");
   const noConfig = Atom.make(null);
   const modelsConfig = Atom.make({
-    environment: { platform: { os: "darwin" }, capabilities: {} },
+    environment: { platform: { os: "darwin" }, capabilities: { antigravitySwarmBoard: true } },
     availableEditors: [],
     settings: { providerInstances: {} },
     providers: [
+      { instanceId: "test-agy", driver: "antigravity", displayName: "Antigravity", models: [] },
       {
         instanceId: "codex",
         driver: "codex",
@@ -106,6 +107,7 @@ vi.mock(import("../state/entities"), async (original) => {
   return {
     ...actual,
     readThreadShell: ((ref: { threadId: string }) => {
+      if (ref.threadId === "native-swarm") return { providerInstanceId: "test-agy" };
       const worktreePath = threadWorktrees.get(ref.threadId);
       return worktreePath === undefined ? actual.readThreadShell(ref as never) : { worktreePath };
     }) as never,
@@ -542,6 +544,28 @@ describe("ChatMarkdown streaming", () => {
       expect(checkboxes[0]!.checked).toBe(false);
     },
   );
+});
+
+it("opens only the native Swarm Board pill in its originating conversation on click", async () => {
+  setup();
+  const threadRef = {
+    environmentId: EnvironmentId.make("models"),
+    threadId: ThreadId.make("native-swarm"),
+  };
+  using open = vi.spyOn(useRightPanelStore.getState(), "open");
+  await using screen = await renderText(
+    "[Open the Swarm UI](sidecar://swarm/swarm_board/?auto_open=false) [Other](sidecar://swarm/swarm_board/?conversationId=other)",
+    { threadRef },
+  );
+  expect(open).not.toHaveBeenCalled();
+  await screen.getByRole("button", { name: "Open the Swarm UI" }).click();
+  expect(open).toHaveBeenCalledWith(threadRef, "swarm");
+  expect(screen.container.querySelector('a[href^="sidecar:"]')).toBeNull();
+  expect(
+    [...screen.container.querySelectorAll("button")].some(
+      (button) => button.textContent === "Other",
+    ),
+  ).toBe(false);
 });
 
 describe("ChatMarkdown workspace file opens", () => {

@@ -4111,6 +4111,7 @@ export const ORCHESTRATION_V2_WS_METHODS = {
   getOlderSettledThreads: "orchestration.getOlderSettledThreads",
   getThreadProjection: "orchestration.getThreadProjection",
   getWorkflowScript: "orchestration.getWorkflowScript",
+  getAntigravitySwarm: "orchestration.getAntigravitySwarm",
   getNativeChildWork: "orchestration.getNativeChildWork",
   stopWorkflow: "orchestration.stopWorkflow",
   forceStopThread: "orchestration.forceStopThread",
@@ -4587,6 +4588,25 @@ export const OrchestrationV2GetWorkflowScriptResult = Schema.Struct({
 export type OrchestrationV2GetWorkflowScriptResult =
   typeof OrchestrationV2GetWorkflowScriptResult.Type;
 
+export const AntigravitySwarmInput = Schema.Struct({
+  threadId: ThreadId,
+  query: Schema.Literals(["assets", "records", "frame"]),
+  framePath: Schema.optional(Schema.String.check(Schema.isMaxLength(4096))),
+  revision: Schema.optional(Schema.String.check(Schema.isMaxLength(128))),
+});
+export const AntigravitySwarmResult = Schema.Struct({
+  sessionId: Schema.NullOr(Schema.String),
+  revision: Schema.String,
+  files: Schema.Array(
+    Schema.Struct({ name: Schema.String, text: Schema.String, modified: Schema.Finite }),
+  ),
+});
+export type AntigravitySwarmResult = typeof AntigravitySwarmResult.Type;
+export class AntigravitySwarmError extends Schema.TaggedError<AntigravitySwarmError>()(
+  "AntigravitySwarmError",
+  { message: Schema.String },
+) {}
+
 /** Names a provider-native subagent's child thread. */
 export const OrchestrationV2GetNativeChildWorkInput = Schema.Struct({
   threadId: ThreadId,
@@ -4822,6 +4842,7 @@ export const OrchestrationV2RpcSchemas = {
     input: OrchestrationV2GetWorkflowScriptInput,
     output: OrchestrationV2GetWorkflowScriptResult,
   },
+  getAntigravitySwarm: { input: AntigravitySwarmInput, output: AntigravitySwarmResult },
   getNativeChildWork: {
     input: OrchestrationV2GetNativeChildWorkInput,
     output: OrchestrationV2GetNativeChildWorkResult,

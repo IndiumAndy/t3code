@@ -72,6 +72,7 @@ import {
   AuthOrchestrationOperateScope,
   AuthSourceControlWriteScope,
   AuthPreviewOperateScope,
+  AuthFilesystemReadScope,
   AuthTerminalOperateScope,
   type AssistantCitation,
   type ResponseContextRecord,
@@ -480,6 +481,7 @@ export default function ChatView(props: ChatViewProps) {
   const embedded = parentPanel !== undefined;
   const panelHostShell = useQuietThreadShell(parentPanel?.hostRef ?? null);
   const canOperateThread = useEnvironmentScope(environmentId, AuthOrchestrationOperateScope);
+  const canReadHostFiles = useEnvironmentScope(environmentId, AuthFilesystemReadScope);
   const canOperateTerminal = useEnvironmentScope(environmentId, AuthTerminalOperateScope);
   const draftId = routeKind === "draft" ? props.draftId : null;
   const handleNewThread = useNewThreadHandler();
@@ -3582,6 +3584,11 @@ export default function ChatView(props: ChatViewProps) {
             {!rightPanelControlsAtRoot && !rightPanelControlsInPanel ? panelLayoutControls : null}
             {inlineRightPanelOwnsTitleBar ? threadPanelHeaderControl : null}
             <ChatHeader
+              showSwarmBoard={
+                canReadHostFiles &&
+                serverConfig?.environment.capabilities.antigravitySwarmBoard === true &&
+                conversationProviderStatus?.driver === "antigravity"
+              }
               activeThreadEnvironmentId={activeThread.environmentId}
               activeThreadId={activeThread.id}
               isServerThread={isServerThread}

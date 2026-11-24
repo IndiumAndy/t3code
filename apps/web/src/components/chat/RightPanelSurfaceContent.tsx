@@ -29,6 +29,7 @@ import { PullRequestDetailGhost } from "../pullRequest/PullRequestGhosts";
 import { PullRequestsUnavailableState } from "../pullRequest/PullRequestsUnavailableState";
 import { ThreadPullRequestsPanel } from "../pullRequest/ThreadPullRequestsPanel";
 
+const AntigravitySwarmPanel = lazy(() => import("./AntigravitySwarmPanel"));
 const PreviewPanel = lazy(() =>
   import("../preview/PreviewPanel").then((module) => ({ default: module.PreviewPanel })),
 );
@@ -91,6 +92,12 @@ export function RightPanelSurfaceContent(props: {
   const gt = useGT();
   if (surface === null) return null;
   switch (surface.kind) {
+    case "swarm":
+      return visible ? (
+        <Suspense fallback={null}>
+          <AntigravitySwarmPanel key={scopedThreadKey(threadRef)} threadRef={threadRef} />
+        </Suspense>
+      ) : null;
     case "preview":
       return (
         <Suspense fallback={null}>

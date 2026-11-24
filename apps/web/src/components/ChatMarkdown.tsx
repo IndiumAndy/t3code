@@ -19,6 +19,7 @@ import { usePullRequestLinking } from "~/hooks/usePullRequestLinking";
 import {
   AuthFilesystemReadScope,
   AuthOrchestrationOperateScope,
+  AuthOrchestrationReadScope,
   SOURCE_CONTROL_MEDIA_ASSET,
 } from "@t3tools/contracts";
 import { chatMarkdownImageSource } from "@t3tools/shared/markdownHast";
@@ -1292,6 +1293,42 @@ const CHAT_MARKDOWN_COMPONENTS = {
       renderContextReference,
     } = use(ChatMarkdownRendererContext);
     const text = use(ChatMarkdownTextContext);
+    // The sanitizer already removed the sidecar protocol. Recognize only the
+    // installed panel's two Markdown destinations; neither becomes an href.
+    const linkStart = node?.position?.start.offset;
+    const linkEnd = node?.position?.end.offset;
+    const nativeBoard =
+      !href &&
+      linkStart !== undefined &&
+      linkEnd !== undefined &&
+      /\]\(sidecar:\/\/swarm\/swarm_board\/(?:\?auto_open=false)?\)$/.test(
+        text.slice(linkStart, linkEnd),
+      );
+    if (nativeBoard && threadRef) {
+      const config = appAtomRegistry.get(
+        serverEnvironment.configValueAtom(threadRef.environmentId),
+      );
+      const shell = readThreadShell(threadRef);
+      const instance = shell?.runtime?.providerInstanceId ?? shell?.providerInstanceId;
+      if (
+        config?.environment.capabilities.antigravitySwarmBoard === true &&
+        config.providers.some(
+          (provider) => provider.instanceId === instance && provider.driver === "antigravity",
+        ) &&
+        readEnvironmentScope(threadRef.environmentId, AuthOrchestrationReadScope) &&
+        readEnvironmentScope(threadRef.environmentId, AuthFilesystemReadScope)
+      ) {
+        return (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => useRightPanelStore.getState().open(threadRef, "swarm")}
+          >
+            {children}
+          </Button>
+        );
+      }
+    }
     const citation = href ? parseAssistantCitationHref(href) : null;
     const before = node?.position?.start.offset;
     const after = node?.position?.end.offset;

@@ -1,3 +1,5 @@
+import { useRightPanelStore } from "../../rightPanelStore";
+import { Button } from "../ui/button";
 import {
   AuthOrchestrationOperateScope,
   type EnvironmentId,
@@ -47,6 +49,7 @@ import { useClientSettings } from "../../hooks/useSettings";
 import { GuestShareIndicator } from "./GuestShareControls";
 
 interface ChatHeaderProps {
+  showSwarmBoard?: boolean;
   activeThreadEnvironmentId: EnvironmentId;
   activeThreadId: ThreadId;
   activeThreadTitle: string;
@@ -72,6 +75,7 @@ function resolveRenameCommit(input: {
 }
 
 export const ChatHeader = memo(function ChatHeader({
+  showSwarmBoard,
   activeThreadEnvironmentId,
   activeThreadId,
   activeThreadTitle,
@@ -413,6 +417,15 @@ export const ChatHeader = memo(function ChatHeader({
           ) : null}
         </WorkspaceBreadcrumbItem>
       </WorkspaceBreadcrumb>
+      {showSwarmBoard && isServerThread ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => useRightPanelStore.getState().open(activeThreadRef, "swarm")}
+        >
+          <T>Swarm Board</T>
+        </Button>
+      ) : null}
       {isServerThread ? <GuestShareIndicator threadRef={activeThreadRef} /> : null}
     </div>
   );

@@ -601,6 +601,8 @@ function surfaceTitle(
   resolve: MessageResolver = m,
 ): string {
   switch (surface.kind) {
+    case "swarm":
+      return resolve(msg("Swarm Board"));
     case "diff":
       return resolve(msg("Diff"));
     case "files":
@@ -694,6 +696,8 @@ function SurfaceIcon({
   switch (surface.kind) {
     case "preview":
       return <PreviewFavicon capturedUrl={previewCapturedUrl} url={previewUrl} />;
+    case "swarm":
+      return <Bot className="size-3 shrink-0" />;
     case "diff":
       return <FileDiff className="size-3 shrink-0" />;
     case "files":

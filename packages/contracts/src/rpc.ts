@@ -277,6 +277,7 @@ import {
 import {
   ORCHESTRATION_V2_WS_METHODS,
   OrchestrationGetWorkflowScriptError,
+  AntigravitySwarmError,
   OrchestrationV2GetNativeChildWorkError,
   OrchestrationV2StopWorkflowError,
   OrchestrationV2ForceStopThreadError,
@@ -2219,6 +2220,11 @@ const WsOrchestrationV2GetWorkflowScriptRpc = Rpc.make(
   },
 );
 
+const WsAntigravitySwarmRpc = Rpc.make(ORCHESTRATION_V2_WS_METHODS.getAntigravitySwarm, {
+  payload: OrchestrationV2RpcSchemas.getAntigravitySwarm.input,
+  success: OrchestrationV2RpcSchemas.getAntigravitySwarm.output,
+  error: Schema.Union([AntigravitySwarmError, EnvironmentAuthorizationError]),
+});
 const WsOrchestrationV2GetNativeChildWorkRpc = Rpc.make(
   ORCHESTRATION_V2_WS_METHODS.getNativeChildWork,
   {
@@ -2695,6 +2701,7 @@ export const WsRpcGroup = RpcGroup.make(
   WsSubscribeResourceTelemetryRpc,
   WsOrchestrationV2DispatchCommandRpc,
   WsOrchestrationV2GetWorkflowScriptRpc,
+  WsAntigravitySwarmRpc,
   WsOrchestrationV2GetNativeChildWorkRpc,
   WsOrchestrationV2StopWorkflowRpc,
   WsOrchestrationV2ForceStopThreadRpc,

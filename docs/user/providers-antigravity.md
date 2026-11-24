@@ -118,6 +118,16 @@ separate side chat while the original thread continues. Send `/btw` on its own
 to reopen the most recently answered side chat in this thread, or start one if
 there is no previous answer. Use `/side` to start a fresh one.
 
+### Swarm Board
+
+Open **Swarm Board** in the Antigravity thread header, or send `/swarm board` in that thread.
+The panel follows the conversation on its own environment. A conversation that has not started
+a swarm shows an empty board. Use `/swarm <task>` to start one.
+
+This view uses the Swarm panel bundled with Antigravity Desktop on the environment, falling
+back to the panel in the ACP profile. It supports local file-backed boards. The connection
+needs read access to orchestration and files.
+
 ### Subagents
 
 Antigravity groups subagent activity into batches. Open a batch and select

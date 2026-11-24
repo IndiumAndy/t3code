@@ -21,6 +21,7 @@ import type { ThreadPanelPresentation } from "./rightPanelLayout";
 import type { ChatFileAttachment } from "./types";
 
 const RIGHT_PANEL_KINDS = [
+  "swarm",
   "diff",
   "files",
   "file",
@@ -56,6 +57,7 @@ export type RightPanelSurface =
       activeTerminalId: string;
       splitDirection?: "horizontal" | "vertical";
     }
+  | { id: "swarm"; kind: "swarm" }
   | { id: "diff"; kind: "diff" }
   | {
       id: "files";
@@ -291,6 +293,8 @@ const singletonSurface = (
   >,
 ): RightPanelSurface => {
   switch (kind) {
+    case "swarm":
+      return { id: "swarm", kind };
     case "diff":
       return { id: "diff", kind };
     case "files":

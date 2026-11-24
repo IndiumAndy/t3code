@@ -1,3 +1,4 @@
+import { useRightPanelStore } from "../../rightPanelStore";
 import { msg } from "gt-react";
 import { thrownErrorMessage } from "@t3tools/client-runtime/errors";
 import { m } from "~/i18n/messages";
@@ -455,6 +456,26 @@ export function useComposerSend(input: ComposerSendInput) {
     let sendCtx = detachedOverride
       ? detachedOverride.sendContext
       : composerRef.current?.getSendContext();
+    if (
+      activeThread &&
+      isServerThread &&
+      sendCtx?.selectedProvider === "antigravity" &&
+      !activePendingUserInput &&
+      !directAnnotation &&
+      !queuedRunEdit.isEditing &&
+      !detachedOverride &&
+      !draftHasNonPromptContent(composerDraftTarget) &&
+      countPreparingComposerImages(composerTargetKey(composerDraftTarget)) === 0 &&
+      readEnvironmentPresentation(environmentId)?.serverConfig?.environment.capabilities
+        .antigravitySwarmBoard === true &&
+      /^\/swarm\s+board$/i.test(promptAtSend.trim())
+    ) {
+      useRightPanelStore.getState().open(scopeThreadRef(environmentId, activeThread.id), "swarm");
+      setComposerDraftPrompt(composerDraftTarget, "");
+      promptRef.current = "";
+      composerRef.current?.resetCursorState();
+      return;
+    }
     const isCurrentRouteThread = () => currentRouteThreadKeyRef.current === routeThreadKey;
     // `/side` beats an open question and a plan follow-up, which would send the text to main.
     const sideChatCommand =

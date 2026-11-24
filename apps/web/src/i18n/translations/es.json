@@ -12821,5 +12821,9 @@
   "ee18cdfae3a30ac9": "Reviewed",
   "b5e67e8c3e24883e": "Superseded",
   "1c3b591144e9df12": "Feedback requested",
-  "abb94570c31e2c3c": "Showing a limited list of artifacts."
+  "abb94570c31e2c3c": "Showing a limited list of artifacts.",
+  "f76d1845dd245778": "Failed to stop goal.",
+  "610984788e10d953": "Goal stopped · objective retained",
+  "223da30ae53bbf8c": "Stop and keep objective",
+  "d08232a23d29b61b": "Restart goal"
 }

@@ -13,6 +13,9 @@ import {
   type OrchestrationV2ProviderSession,
   type OrchestrationV2ProviderThread,
   type OrchestrationV2ProviderThreadNativeMetadata,
+  type OrchestrationV2GoalCommand,
+  type OrchestrationV2ProviderGoal,
+  parseGoalCommand,
   type OrchestrationV2ProviderTurn,
   type OrchestrationV2RuntimeRequest,
   type OrchestrationV2Subagent,
@@ -463,6 +466,15 @@ export interface AcpAdapterV2Flavor {
   readonly driver: ProviderDriverKind;
   readonly capabilities: OrchestrationV2ProviderCapabilities;
   readonly supportsNativeGoals?: Effect.Effect<boolean>;
+  readonly goalControls?: {
+    readonly prepare: (
+      sessionId: string,
+      command: Exclude<OrchestrationV2GoalCommand, { type: "set" }>,
+    ) => Effect.Effect<{ readonly reply: string } | { readonly prompt: string }>;
+    readonly read: (
+      sessionId: string,
+    ) => Effect.Effect<OrchestrationV2ProviderGoal | null | undefined>;
+  };
   readonly clientCapabilitiesMeta?: NonNullable<
     EffectAcpSchema.InitializeRequest["clientCapabilities"]
   >["_meta"];
@@ -2124,6 +2136,7 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
       turns: {
         ...flavor.capabilities.turns,
         supportsNativeGoals: yield* flavor.supportsNativeGoals,
+        ...(flavor.goalControls ? { supportsGoalControls: true } : {}),
       },
     };
   });
@@ -8916,8 +8929,17 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
             threadId: context.input.threadId,
             providerTurn: turn,
           });
+          const checkGoal =
+            flavor.goalControls &&
+            (context.input.providerThread.goal != null ||
+              parseGoalCommand(context.input.message) !== null);
+          const nativeGoal =
+            checkGoal && flavor.goalControls
+              ? yield* flavor.goalControls.read(context.nativeThreadId)
+              : undefined;
           const updatedProviderThread: OrchestrationV2ProviderThread = {
             ...context.input.providerThread,
+            ...(nativeGoal !== undefined ? { goal: nativeGoal } : {}),
             providerSessionId: input.providerSessionId,
             status: threadDisposition === "broken" ? "error" : "active",
             lastRunOrdinal: context.input.runOrdinal,
@@ -9267,17 +9289,24 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
             hasT3Mcp: mcpSession !== undefined,
             hasDeviceTools: mcpSession?.capabilities?.has("device") === true,
           } satisfies T3AcpInstructionState;
+          const nativeGoalCommand = flavor.goalControls && parseGoalCommand(turnInput.message);
+          const goalControl =
+            flavor.goalControls && nativeGoalCommand && nativeGoalCommand.type !== "set"
+              ? yield* flavor.goalControls.prepare(sessionId, nativeGoalCommand)
+              : undefined;
           const userText =
-            flavor.rewriteUserText === undefined
-              ? turnInput.message.text
-              : yield* flavor
-                  .rewriteUserText(turnInput.message.text, turnInput)
-                  .pipe(
-                    Effect.provideService(
-                      ChildProcessSpawner.ChildProcessSpawner,
-                      childProcessSpawner,
-                    ),
-                  );
+            goalControl && "prompt" in goalControl
+              ? goalControl.prompt
+              : flavor.rewriteUserText === undefined
+                ? turnInput.message.text
+                : yield* flavor
+                    .rewriteUserText(turnInput.message.text, turnInput)
+                    .pipe(
+                      Effect.provideService(
+                        ChildProcessSpawner.ChildProcessSpawner,
+                        childProcessSpawner,
+                      ),
+                    );
           const messageText = yield* providerMessageTextWithAttachmentPaths({
             text: userText,
             attachments: turnInput.message.attachments,
@@ -9344,6 +9373,7 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
           }
           return {
             prompt,
+            goalControl,
             instructionState: text === messageText ? undefined : instructionState,
             runtimeInstructions: sendRuntimeInstructions ? runtimeInstructions : undefined,
             appContextEntries,
@@ -9919,8 +9949,18 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
               threadId: turnInput.threadId,
               providerTurn: runningTurn,
             });
+            const startedGoal = flavor.goalControls && parseGoalCommand(turnInput.message);
             const activeProviderThread: OrchestrationV2ProviderThread = {
               ...turnInput.providerThread,
+              ...(startedGoal?.type === "set"
+                ? {
+                    goal: {
+                      objective: startedGoal.objective,
+                      status: "active",
+                      restartFromObjective: true,
+                    },
+                  }
+                : {}),
               providerSessionId: input.providerSessionId,
               status: "active",
               contextUsage: context.contextUsage,
@@ -10036,6 +10076,11 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
                   yield* scheduleDeferredFinalize(context);
                 }
               }
+              return;
+            }
+            if (promptParts?.goalControl && "reply" in promptParts.goalControl) {
+              yield* appendText(context, "assistant", promptParts.goalControl.reply);
+              yield* finalizeTurn(context, "completed");
               return;
             }
             const checkPromptOutcome =

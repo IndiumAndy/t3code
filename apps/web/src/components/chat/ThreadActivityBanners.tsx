@@ -110,7 +110,11 @@ export function goalNowItem(
     title: (
       <Popover>
         <PopoverTrigger openOnHover render={<InlineButton />}>
-          {presentation.title}
+          {input.goal.restartFromObjective && input.goal.status === "paused" ? (
+            <T>Goal stopped · objective retained</T>
+          ) : (
+            presentation.title
+          )}
           {presentation.usage === null ? null : ` · ${presentation.usage}`}
         </PopoverTrigger>
         <PopoverPopup
@@ -127,6 +131,13 @@ export function goalNowItem(
     // Clear stops goal work; Resume would stop unrelated work, so it waits.
     actions: (
       <>
+        {input.goal.restartFromObjective && input.goal.status === "active" ? (
+          <InlineButton
+            onClick={() => void onSendCommand("/goal pause", resolve(msg("Failed to stop goal.")))}
+          >
+            <T>Stop and keep objective</T>
+          </InlineButton>
+        ) : null}
         {presentation.canResume && !isWorking ? (
           <>
             <InlineButton
@@ -134,7 +145,11 @@ export function goalNowItem(
                 void onSendCommand("/goal resume", resolve(msg("Failed to resume goal.")))
               }
             >
-              <T context="verb, resumes the goal">Resume</T>
+              {input.goal.restartFromObjective ? (
+                <T>Restart goal</T>
+              ) : (
+                <T context="verb, resumes the goal">Resume</T>
+              )}
             </InlineButton>
             <span aria-hidden>·</span>
           </>

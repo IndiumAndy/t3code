@@ -20,11 +20,11 @@ const varint = (value: number): number[] => {
   }
   return [...bytes, value];
 };
-const field = (number: number, value: string | Uint8Array) => {
+export const field = (number: number, value: string | Uint8Array) => {
   const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
   return [...varint(number * 8 + 2), ...varint(bytes.length), ...bytes];
 };
-const proto = (...parts: number[][]) => Uint8Array.from(parts.flat());
+export const proto = (...parts: number[][]) => Uint8Array.from(parts.flat());
 const toolCall = (id: string) => proto(field(1, id), field(2, "invoke_subagent"));
 
 export const invokeStep = (input: {

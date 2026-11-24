@@ -1723,8 +1723,13 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
     ) {
       const goalCommand = parseGoalCommand(message);
       if (goalCommand === null || goalCommand.type === "set") return;
-      const driver = yield* goalDriverFor(command, providerInstanceId);
+      const adapter = yield* providerAdapters
+        .get(providerInstanceId)
+        .pipe(mapDispatchError(command));
+      const { driver } = adapter;
       if (driver === "antigravity") {
+        const caps = yield* adapter.getCapabilities().pipe(mapDispatchError(command));
+        if (caps.turns.supportsNativeGoals && caps.turns.supportsGoalControls) return;
         return yield* new OrchestratorDispatchError({
           commandId: command.commandId,
           commandType: command.type,
@@ -7622,11 +7627,11 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
     let modelSelection = command.modelSelection ?? projection.thread.modelSelection;
     // Native goal commands must not steer an existing turn.
     const parsedGoalCommand = parseGoalCommand(command);
-    const goalCommand =
-      parsedGoalCommand === null ||
-      (yield* goalDriverFor(command, modelSelection.instanceId)) === undefined
-        ? null
-        : parsedGoalCommand;
+    const goalDriver =
+      parsedGoalCommand === null
+        ? undefined
+        : yield* goalDriverFor(command, modelSelection.instanceId);
+    const goalCommand = goalDriver === undefined ? null : parsedGoalCommand;
     // A goal command keeps the run it was sent at; the goal handling below queues it.
     let dispatchMode =
       goalCommand === null
@@ -7755,6 +7760,7 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         );
         if (
           isLiveRun(target) &&
+          (goalDriver !== "antigravity" || goalCommand.type !== "resume") &&
           goalCommandStopsActiveRun(goalCommand, goal?.status ?? null) &&
           (targetMessage === undefined || !isNativeMaintenanceCommand(targetMessage)) &&
           !(yield* stopReachedRun(command, command.threadId, target.id))
@@ -12177,11 +12183,11 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
     // A scheduled delivery steers on the thread's current pick, so /goal must suit that provider.
     const modelSelection = queuedRunModelSelection(projection, queuedRun);
     const parsedGoalCommand = parseGoalCommand(queuedMessage);
-    const goalCommand =
-      parsedGoalCommand === null ||
-      (yield* goalDriverFor(command, modelSelection.instanceId)) === undefined
-        ? null
-        : parsedGoalCommand;
+    const goalDriver =
+      parsedGoalCommand === null
+        ? undefined
+        : yield* goalDriverFor(command, modelSelection.instanceId);
+    const goalCommand = goalDriver === undefined ? null : parsedGoalCommand;
     const target = projection.runs.find((run) => run.id === command.targetRunId);
     const targetMessage = projection.messages.find(
       (message) => message.id === target?.userMessageId,
@@ -12254,6 +12260,7 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         goalCommand !== null &&
         target !== undefined &&
         isLiveRun(target) &&
+        (goalDriver !== "antigravity" || goalCommand.type !== "resume") &&
         goalCommandStopsActiveRun(goalCommand, goal?.status ?? null) &&
         (targetMessage === undefined || !isNativeMaintenanceCommand(targetMessage)) &&
         !(yield* stopReachedRun(command, command.threadId, target.id));

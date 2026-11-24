@@ -322,6 +322,7 @@ export type OrchestrationV2ThreadCapabilities = typeof OrchestrationV2ThreadCapa
 
 export const OrchestrationV2TurnCapabilities = Schema.Struct({
   supportsNativeGoals: Schema.optional(Schema.Boolean),
+  supportsGoalControls: Schema.optional(Schema.Boolean),
   exposesNativeTurnId: Schema.Boolean,
   emitsTurnStarted: Schema.Boolean,
   emitsTurnCompleted: Schema.Boolean,
@@ -1246,6 +1247,7 @@ export type OrchestrationV2ProviderGoalStatus = typeof OrchestrationV2ProviderGo
 export const OrchestrationV2ProviderGoal = Schema.Struct({
   objective: TrimmedNonEmptyString,
   status: OrchestrationV2ProviderGoalStatus,
+  restartFromObjective: Schema.optional(Schema.Literal(true)),
   tokensUsed: Schema.optional(NonNegativeInt),
   tokenBudget: Schema.optional(Schema.NullOr(NonNegativeInt)),
   timeUsedSeconds: Schema.optional(NonNegativeInt),

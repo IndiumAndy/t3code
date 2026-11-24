@@ -173,9 +173,11 @@ is refused while the runtime is in use.
 When your Antigravity runtime offers `/goal`, send `/goal` followed by a verifiable
 objective. Antigravity keeps working until it completes the goal or you cancel it.
 
-Use Stop to interrupt a running goal, then ask Antigravity to stop pursuing it
-before starting more work. Ordinary follow-ups wait until the running turn ends.
-T3 does not support Antigravity goal status, pause, resume, or clear commands.
+Send `/goal` to check this conversation's native goal. **Stop and keep objective**
+(`/goal pause`) asks Antigravity to cancel the goal and retains its objective after
+the agent confirms cancellation. **Restart goal** (`/goal resume`) starts a new
+native goal in the same conversation using that objective. Use `/goal clear` to
+cancel without retaining it. Completed work and conversation history stay in place.
 
 ## Check access and troubleshoot
 

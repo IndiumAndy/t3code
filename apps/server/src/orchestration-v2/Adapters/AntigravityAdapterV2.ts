@@ -36,6 +36,7 @@ import {
   readAntigravityChildrenAtWork,
   readAntigravityPendingReply,
 } from "../../provider/acp/AntigravityChildWork.ts";
+import { antigravityGoalControl, readAntigravityGoal } from "../../provider/acp/AntigravityGoal.ts";
 import { readAntigravityClientTextFile } from "../../provider/acp/AntigravityClientFiles.ts";
 import { readAntigravityReviewPlan } from "../../provider/acp/AntigravityReviewPlan.ts";
 import { watchAntigravityPromptOutcome } from "../../provider/acp/AntigravityTurnOutcome.ts";
@@ -313,6 +314,27 @@ export function makeAntigravityAcpAdapterFlavor(
             Effect.promise(() =>
               readAntigravityReviewPlan(profileDirectory, sessionId, startedAt, endedAt),
             ),
+          goalControls: {
+            prepare: (sessionId, command) =>
+              Effect.promise(async () =>
+                antigravityGoalControl(
+                  command,
+                  await readAntigravityGoal(profileDirectory, sessionId),
+                ),
+              ),
+            read: (sessionId) =>
+              Effect.promise(async () => {
+                const goal = await readAntigravityGoal(profileDirectory, sessionId);
+                if (goal === undefined) return undefined;
+                if (goal === null || goal.status === "cancelled" || goal.status === "complete")
+                  return null;
+                return {
+                  objective: goal.objective,
+                  status: goal.status === "retained" ? ("paused" as const) : ("active" as const),
+                  restartFromObjective: true as const,
+                };
+              }),
+          },
           watchPromptOutcome: (sessionId: string) =>
             watchAntigravityPromptOutcome(profileDirectory, sessionId),
           subagentsOutlivingPrompt: ({ sessionId, nativeTaskIds }) =>

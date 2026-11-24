@@ -1,6 +1,6 @@
 import { proposedPlanTitle, stripDisplayedPlanMarkdown } from "@t3tools/shared/proposedPlanText";
 import { msg, T, useGT, useMessages, Var } from "gt-react";
-import { memo, useState, useId } from "react";
+import { memo, useState, useId, type ReactNode } from "react";
 import { findRevealRef } from "./markdownFindContext";
 import {
   isAtomCommandInterrupted,
@@ -41,6 +41,7 @@ import { readEnvironmentScope, useEnvironmentScope } from "~/state/session";
 
 export const ProposedPlanCard = memo(function ProposedPlanCard({
   planMarkdown,
+  children,
   environmentId,
   threadRef,
   cwd,
@@ -48,6 +49,7 @@ export const ProposedPlanCard = memo(function ProposedPlanCard({
   findActive = false,
 }: {
   planMarkdown: string;
+  children?: ReactNode;
   environmentId: EnvironmentId;
   threadRef?: ScopedThreadRef | undefined;
   cwd: string | undefined;
@@ -242,6 +244,7 @@ export const ProposedPlanCard = memo(function ProposedPlanCard({
         ) : null}
       </div>
 
+      {children}
       <Dialog
         open={isSaveDialogOpen}
         onOpenChange={(open) => {

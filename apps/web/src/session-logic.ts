@@ -679,6 +679,9 @@ export function deriveTimelineEntriesFromVisibleTurnItems(
         id: item.planId,
         runId: item.runId,
         planMarkdown: item.markdown,
+        ...(plan?.kind === "proposed_plan" && plan.reviewRevision
+          ? { reviewRevision: plan.reviewRevision }
+          : {}),
         status: plan?.kind === "proposed_plan" ? plan.status : ("active" as const),
         createdAt,
         updatedAt: DateTime.formatIso(item.updatedAt),

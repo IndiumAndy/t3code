@@ -1598,6 +1598,7 @@ export const OrchestrationV2PlanArtifact = Schema.Union([
   Schema.Struct({
     ...OrchestrationV2PlanArtifactBaseFields,
     kind: Schema.Literal("proposed_plan"),
+    reviewRevision: Schema.optional(TrimmedNonEmptyString),
     markdown: Schema.String,
   }),
   Schema.Struct({
@@ -3616,7 +3617,13 @@ export const OrchestrationV2Command = Schema.Union([
     attachments: Schema.Array(ChatAttachment),
     titleSeed: Schema.optional(TrimmedNonEmptyString),
     modelSelection: Schema.optional(ModelSelection),
-    sourcePlanRef: Schema.optional(Schema.Struct({ threadId: ThreadId, planId: PlanId })),
+    sourcePlanRef: Schema.optional(
+      Schema.Struct({
+        threadId: ThreadId,
+        planId: PlanId,
+        requestChanges: Schema.optional(Schema.Literal(true)),
+      }),
+    ),
     restartContinuationOfRunId: Schema.optional(RunId),
     usageLimitContinuationOfRunId: Schema.optional(RunId),
     manualContinuationOfRunId: Schema.optional(RunId),

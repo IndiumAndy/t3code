@@ -10,6 +10,7 @@ import { GitForkIcon, ReplyIcon } from "lucide-react";
 import { captureAssistantMessageOpening } from "~/lib/assistantTextSelection";
 import { responseContextRecord } from "~/lib/composerContextRecords";
 import { Button } from "../ui/button";
+import { PlanReviewActions } from "./PlanReviewActions";
 import { ProposedPlanCard } from "./ProposedPlanCard";
 import { HtmlRenderFrame } from "./HtmlRenderFrame";
 import { McpAppFrame } from "./McpAppFrame";
@@ -339,6 +340,7 @@ export function ProposedPlanTimelineRow({
   row: Extract<TimelineRow, { kind: "proposed-plan" }>;
 }) {
   const ctx = use(TimelineRowCtx);
+  const activity = use(TimelineRowActivityCtx);
 
   return (
     <div className="min-w-0 px-1 py-0.5">
@@ -349,7 +351,16 @@ export function ProposedPlanTimelineRow({
         cwd={ctx.markdownCwd}
         workspaceRoot={ctx.workspaceRoot}
         findActive={ctx.findActive}
-      />
+      >
+        {row.proposedPlan.reviewRevision && ctx.threadRef && ctx.canOperateThread ? (
+          <PlanReviewActions
+            key={row.proposedPlan.id}
+            plan={row.proposedPlan}
+            threadRef={ctx.threadRef}
+            current={!activity.isWorking && activity.latestRunId === row.proposedPlan.runId}
+          />
+        ) : null}
+      </ProposedPlanCard>
     </div>
   );
 }

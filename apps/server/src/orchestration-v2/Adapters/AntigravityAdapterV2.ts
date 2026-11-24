@@ -37,6 +37,7 @@ import {
   readAntigravityPendingReply,
 } from "../../provider/acp/AntigravityChildWork.ts";
 import { readAntigravityClientTextFile } from "../../provider/acp/AntigravityClientFiles.ts";
+import { readAntigravityReviewPlan } from "../../provider/acp/AntigravityReviewPlan.ts";
 import { watchAntigravityPromptOutcome } from "../../provider/acp/AntigravityTurnOutcome.ts";
 import {
   antigravityApprovalOptions,
@@ -62,6 +63,7 @@ const ANTIGRAVITY_PROVIDER = ProviderDriverKind.make("antigravity");
 
 const AntigravityProviderCapabilitiesV2 = {
   ...AcpProviderCapabilitiesV2,
+  planning: { ...AcpProviderCapabilitiesV2.planning, emitsProposedPlan: true },
   sessions: {
     ...AcpProviderCapabilitiesV2.sessions,
     supportsModelSwitchInSession: true,
@@ -307,6 +309,10 @@ export function makeAntigravityAcpAdapterFlavor(
     ...(profileDirectory === undefined
       ? {}
       : {
+          readReviewPlan: (sessionId: string, startedAt: number, endedAt: number) =>
+            Effect.promise(() =>
+              readAntigravityReviewPlan(profileDirectory, sessionId, startedAt, endedAt),
+            ),
           watchPromptOutcome: (sessionId: string) =>
             watchAntigravityPromptOutcome(profileDirectory, sessionId),
           subagentsOutlivingPrompt: ({ sessionId, nativeTaskIds }) =>

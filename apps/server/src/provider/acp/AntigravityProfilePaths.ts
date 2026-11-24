@@ -1,5 +1,5 @@
 // @effect-diagnostics nodeBuiltinImport:off -- lstat proves no managed component is a link.
-import type * as NodeFS from "node:fs";
+import * as NodeFS from "node:fs";
 import * as NodeFSP from "node:fs/promises";
 import * as NodePath from "node:path";
 
@@ -35,3 +35,46 @@ export async function antigravityManagedPath(
 
 export const antigravityProfileRoot = (profileDirectory: string) =>
   NodeFSP.realpath(profileDirectory).catch(() => undefined);
+
+export async function readAntigravityArtifact(
+  root: string,
+  sessionId: string,
+  name: string,
+  limit: number,
+) {
+  if (
+    !/^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(sessionId) ||
+    !/^[\w.-]+$/.test(name) ||
+    name === "." ||
+    name === ".."
+  )
+    return undefined;
+  const file = await antigravityManagedPath(
+    root,
+    ["antigravity-acp", "brain", sessionId, name],
+    "file",
+  );
+  if (!file || file.info.size > limit) return undefined;
+  const handle = await NodeFSP.open(
+    file.path,
+    NodeFS.constants.O_RDONLY |
+      (NodeFS.constants.O_NOFOLLOW ?? 0) |
+      (NodeFS.constants.O_NONBLOCK ?? 0),
+  );
+  try {
+    const stat = await handle.stat();
+    if (
+      !stat.isFile() ||
+      stat.dev !== file.info.dev ||
+      stat.ino !== file.info.ino ||
+      stat.size > limit
+    )
+      return undefined;
+    const bytes = Buffer.alloc(stat.size + 1);
+    const { bytesRead } = await handle.read(bytes);
+    if (bytesRead !== stat.size) return undefined;
+    return bytes.toString("utf8", 0, bytesRead);
+  } finally {
+    await handle.close();
+  }
+}

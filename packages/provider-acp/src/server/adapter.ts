@@ -431,6 +431,13 @@ export interface AcpAdapterV2Flavor {
   readonly promptFailure?: (cause: unknown) => OrchestrationV2ProviderFailure;
   /** The flavor's runtime refuses a version the policy rates broken when it starts. */
   readonly checksVersionAtHandshake?: boolean;
+  readonly readReviewPlan?: (
+    sessionId: string,
+    turnStartedMs: number,
+    turnEndedMs: number,
+  ) => Effect.Effect<
+    { readonly planMarkdown: string; readonly reviewRevision: string } | undefined
+  >;
   /**
    * Runs before `session/prompt`. The check reports a failure hidden by a clean stop, or
    * by silence when the inactivity watchdog retires the prompt (`retired`). A failure
@@ -3110,6 +3117,7 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
         } | null>(null);
         const captureProposedPlan = Effect.fnUntraced(function* (input: {
           readonly planMarkdown: string;
+          readonly reviewRevision?: string;
         }) {
           const context = yield* Ref.get(activeTurn);
           if (context === null) return;
@@ -3174,7 +3182,8 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
               runId: context.input.runId,
               nodeId,
               kind: "proposed_plan",
-              status: "completed",
+              status: input.reviewRevision ? "active" : "completed",
+              ...(input.reviewRevision ? { reviewRevision: input.reviewRevision } : {}),
               markdown,
             },
           });
@@ -9562,6 +9571,14 @@ export const makeAcpAdapterV2 = Effect.fn("makeAcpAdapterV2")(function* (
                           ? "interrupted"
                           : "cancelled"
                         : "completed";
+                  if (status === "completed" && !context.interrupted && flavor.readReviewPlan) {
+                    const review = yield* flavor.readReviewPlan(
+                      context.nativeThreadId,
+                      DateTime.toEpochMillis(context.startedAt),
+                      yield* Clock.currentTimeMillis,
+                    );
+                    if (review !== undefined) yield* captureProposedPlan(review);
+                  }
                   if (defersFinalizeForBackgroundWork && !context.interrupted) {
                     context.promptSettled = true;
                     context.promptSettledStatus = status;

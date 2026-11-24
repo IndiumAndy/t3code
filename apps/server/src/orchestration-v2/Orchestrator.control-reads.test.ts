@@ -1016,6 +1016,97 @@ it.effect("implements a proposed plan that the command projection leaves out", (
   }).pipe(Effect.provide(layerTest)),
 );
 
+it.effect("consumes a reviewed revision once and rejects an outdated plan on the same thread", () =>
+  Effect.gen(function* () {
+    const orchestrator = yield* Orchestrator.OrchestratorV2;
+    const projections = yield* ProjectionStore.ProjectionStoreV2;
+    const threadId = ThreadId.make("review-thread");
+    const now = yield* DateTime.now;
+    yield* orchestrator.dispatch({
+      type: "thread.create",
+      commandId: CommandId.make("create-review-thread"),
+      threadId,
+      projectId: ProjectId.make("review-project"),
+      title: "Plan review",
+      modelSelection,
+      runtimeMode: "approval-required",
+      interactionMode: "default",
+      branch: null,
+      worktreePath: null,
+      createdBy: "user",
+      creationSource: "web",
+    });
+    const planIds = [PlanId.make("review-old"), PlanId.make("review-current")];
+    for (const [i, planId] of planIds.entries()) {
+      const runId = RunId.make(`review-run-${i}`);
+      const nodeId = NodeId.make(`review-node-${i}`);
+      yield* projections.apply({
+        id: EventId.make(`review-source-${i}`),
+        type: "run.created",
+        threadId,
+        occurredAt: now,
+        payload: {
+          id: runId,
+          threadId,
+          ordinal: i + 1,
+          providerInstanceId: instanceId,
+          modelSelection,
+          providerThreadId: null,
+          userMessageId: MessageId.make(`review-input-${i}`),
+          rootNodeId: nodeId,
+          activeAttemptId: null,
+          status: "completed",
+          requestedAt: now,
+          startedAt: now,
+          completedAt: now,
+          checkpointId: null,
+          contextHandoffId: null,
+        },
+      });
+      yield* projections.apply({
+        id: EventId.make(`review-plan-${i}`),
+        type: "plan.updated",
+        threadId,
+        runId,
+        occurredAt: now,
+        payload: {
+          id: planId,
+          threadId,
+          runId,
+          nodeId,
+          kind: "proposed_plan",
+          status: "active",
+          reviewRevision: `revision-${i}`,
+          markdown: `Version ${i}`,
+        },
+      });
+    }
+    const review = (planId: PlanId, commandId: string) =>
+      orchestrator.dispatch({
+        type: "message.dispatch",
+        commandId: CommandId.make(commandId),
+        threadId,
+        messageId: MessageId.make(commandId),
+        text: "Revise the second paragraph.",
+        attachments: [],
+        sourcePlanRef: { threadId, planId, requestChanges: true },
+        dispatchMode: { type: "defer_start" },
+        createdBy: "user",
+        creationSource: "web",
+      });
+    assert.instanceOf(
+      yield* review(planIds[0]!, "old-review").pipe(Effect.flip),
+      Orchestrator.OrchestratorDispatchError,
+    );
+    yield* review(planIds[1]!, "current-review");
+    assert.equal((yield* projections.getPlan(threadId, planIds[1]!))?.status, "superseded");
+    assert.instanceOf(
+      yield* review(planIds[1]!, "duplicate-review").pipe(Effect.flip),
+      Orchestrator.OrchestratorDispatchError,
+    );
+  }).pipe(Effect.provide(layerTest)),
+);
+
 it.effect("settles only the stopped run's background work, once", () =>
   Effect.gen(function* () {
     const orchestrator = yield* Orchestrator.OrchestratorV2;

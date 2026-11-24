@@ -7972,6 +7972,25 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         cause: `Proposed plan ${sourcePlan.id} is not active.`,
       });
     }
+    if (sourcePlan?.reviewRevision) {
+      const sourceRun = latestExecutedRun(projection.runs);
+      if (
+        sourcePlan.threadId !== command.threadId ||
+        !sourceRun ||
+        sourceRun.id !== sourcePlan.runId ||
+        sourceRun.status !== "completed" ||
+        sourceRun.providerThreadId !== projection.thread.activeProviderThreadId ||
+        sourceRun.modelSelection.instanceId !== modelSelection.instanceId ||
+        command.freshContext ||
+        projection.runs.some((run) => run.status === "queued")
+      ) {
+        return yield* new OrchestratorDispatchError({
+          commandId: command.commandId,
+          commandType: command.type,
+          cause: "This review belongs to an earlier plan or conversation. Open the latest plan.",
+        });
+      }
+    }
     const completeSourcePlan = (occurredAt: DateTime.Utc) =>
       sourcePlan === null
         ? Effect.void
@@ -7984,7 +8003,13 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
             ...(sourcePlan.runId === null ? {} : { runId: sourcePlan.runId }),
             nodeId: sourcePlan.nodeId,
             occurredAt,
-            payload: { ...sourcePlan, status: "completed" },
+            payload: {
+              ...sourcePlan,
+              status:
+                sourcePlan.reviewRevision && command.sourcePlanRef?.requestChanges
+                  ? "superseded"
+                  : "completed",
+            },
           });
 
     let steerWhenReadyRunId: RunId | undefined;

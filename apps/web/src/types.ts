@@ -92,6 +92,7 @@ export interface ChatMessage {
 }
 
 export interface ProposedPlan {
+  readonly reviewRevision?: string;
   readonly id: PlanId;
   readonly runId: RunId | null;
   readonly planMarkdown: string;

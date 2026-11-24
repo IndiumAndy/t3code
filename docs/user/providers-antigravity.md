@@ -111,6 +111,13 @@ Antigravity receives images and audio directly, and reads PDFs and text files as
 documents. Other attachments, including videos, are passed as a saved file path for
 the agent to inspect with its tools.
 
+### Side questions
+
+On desktop and web, send `/btw <question>` to ask about the current task in a
+separate side chat while the original thread continues. Send `/btw` on its own
+to reopen the most recently answered side chat in this thread, or start one if
+there is no previous answer. Use `/side` to start a fresh one.
+
 ### Subagents
 
 Antigravity groups subagent activity into batches. Open a batch and select

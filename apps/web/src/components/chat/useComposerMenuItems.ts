@@ -276,7 +276,11 @@ export function useComposerMenuItems({
                 type: "slash-command",
                 command: "btw",
                 label: "/btw",
-                description: sideChatDisabledReason ?? gt("Same as /side"),
+                description:
+                  sideChatDisabledReason ??
+                  (selectedProvider === "antigravity"
+                    ? gt("Ask a side question or reopen the latest answer")
+                    : gt("Same as /side")),
               },
             ] as const)
           : []),

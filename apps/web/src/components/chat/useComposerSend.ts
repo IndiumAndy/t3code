@@ -279,7 +279,9 @@ interface ComposerSendInput {
   readonly anchorNewTurn: TimelineFollow["anchorNewTurn"];
   readonly acknowledgeActiveThreadWoke: () => void;
   /** Resolves true once the side chat started and got the message. */
-  readonly onSideChat?: ((message: SideChatMessage | undefined) => Promise<boolean>) | undefined;
+  readonly onSideChat?:
+    | ((message: SideChatMessage | undefined, reopenLatest?: boolean) => Promise<boolean>)
+    | undefined;
   /** Refuses `/side` with this reason and keeps the draft. */
   readonly sideChatDisabledReason: string | null;
   readonly handleNewThreadInActiveProject: () => void;
@@ -676,7 +678,13 @@ export function useComposerSend(input: ComposerSendInput) {
         }
       }
       const started = await settlePromise(async () => {
-        if (!hasSendableContent) return onSideChat(undefined);
+        if (!hasSendableContent) {
+          return onSideChat(
+            undefined,
+            sendCtx.selectedProvider === "antigravity" &&
+              promptAtSend.trim().toLowerCase() === "/btw",
+          );
+        }
         const attachments = await prepareTurnAttachments({
           environmentId,
           attachments: snapshot.attachments,

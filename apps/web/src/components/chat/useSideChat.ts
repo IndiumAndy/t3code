@@ -11,11 +11,12 @@ import {
 } from "@t3tools/client-runtime/state/runtime";
 import { useRef } from "react";
 
+import { latestAnsweredSideChat } from "./sideChatHistory";
 import { newMessageId, newThreadId } from "~/lib/utils";
 import { useComposerDraftStore } from "../../composerDraftStore";
 import { useStableCallback } from "../../hooks/useStableCallback";
 import { useRightPanelStore } from "../../rightPanelStore";
-import { readThreadShell, waitForThreadShell } from "../../state/entities";
+import { readThreadShell, readThreadShells, waitForThreadShell } from "../../state/entities";
 import { threadEnvironment } from "../../state/threads";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { useOrchestrationCommand } from "../../state/use-orchestration-command";
@@ -123,9 +124,16 @@ export function useSideChat(input: {
     useRightPanelStore.getState().openThread(threadRef, targetThreadId);
     return true;
   };
-  const open = async (message?: SideChatMessage) => {
+  const open = async (message?: SideChatMessage, reopenLatest = false) => {
     const { threadRef } = input;
     if (!threadRef || pendingRef.current) return false;
+    if (reopenLatest && !message) {
+      const previous = latestAnsweredSideChat(threadRef, readThreadShells());
+      if (previous) {
+        useRightPanelStore.getState().openThread(threadRef, previous.id);
+        return true;
+      }
+    }
     pendingRef.current = true;
     return start(threadRef, message).finally(() => {
       pendingRef.current = false;
